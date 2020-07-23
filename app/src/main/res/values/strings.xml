@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">CP App</string>
+    <string name="judge_prompt">Choose Judge</string>
+
+    <string-array name="judge_arrays">
+        <item>codechef</item>
+        <item>codeforces</item>
+        <item>spoj</item>
+        <item>kattis</item>
+    </string-array>
+</resources>
