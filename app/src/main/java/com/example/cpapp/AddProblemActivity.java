@@ -25,7 +25,6 @@ public class AddProblemActivity extends SingleFragmentActivity {
     }
 
     public static Intent newIntent(Context packageContext, String id,String type){
-        Log.i(TAG,id+"??????????????");
         Intent intent = new Intent(packageContext,AddProblemActivity.class);
         intent.putExtra(EXTRA_ID,id);
         intent.putExtra(EXTRA_TYPE,type);

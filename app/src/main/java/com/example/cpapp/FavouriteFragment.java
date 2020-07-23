@@ -1,11 +1,15 @@
 package com.example.cpapp;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.NavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.widget.LinearLayoutManager;
@@ -18,16 +22,21 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import org.json.JSONException;
 
 import java.util.List;
+import java.util.UUID;
 
 public class FavouriteFragment extends Fragment {
     private static final String TAG = "Favourite Fragment";
     private static final String NOTES="notes";
+    private static final String CONFIRMDELETESTRING = "confirmdelete";
+    private static final int CONFIRMDELETE=2;
     private static final int SETNOTES=1;
+    private static final int FAVOURITE_MENU_ID=1;
     private RecyclerView mRecyclerView;
     private ProblemAdapter mAdapter;
     public static Fragment newInstance(){
@@ -46,31 +55,49 @@ public class FavouriteFragment extends Fragment {
         View view = inflater.inflate(R.layout.favourite_list,container,false);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.favourite_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        BottomNavigationView bottomNavigationView = (BottomNavigationView) view.findViewById(R.id.bottom_navigation);
+        final BottomNavigationView bottomNavigationView = (BottomNavigationView) view.findViewById(R.id.bottom_navigation);
+        initBottomNavigationMenuBar(FAVOURITE_MENU_ID,bottomNavigationView);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                removeColor(bottomNavigationView);
+                item.setChecked(true);
+                Log.i(TAG, String.valueOf(item));
                 switch (item.getItemId()) {
                     case R.id.action_pending:
                         FragmentManager manager = getFragmentManager();
-                        Fragment  fragment = new PendingListFragment();
+                        Fragment fragment = new PendingListFragment();
                         manager.beginTransaction()
                                 .replace(R.id.fragment_container,fragment)
                                 .commit();
                         break;
                     case R.id.action_favorites:
                         break;
+                    case R.id.action_solved:
+                        FragmentManager manager1 = getFragmentManager();
+                        Fragment fragment1 = new SolvedFragment();
+                        manager1.beginTransaction()
+                                .replace(R.id.fragment_container,fragment1)
+                                .commit();
                 }
                 return true;
             }
         });
-        try {
-            UpdateUI(false);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        UpdateUI();
         Log.i(TAG,"favourite list problems");
         return  view;
+    }
+
+    private void initBottomNavigationMenuBar(int index, BottomNavigationView bottomNavigationView) {
+        removeColor(bottomNavigationView);
+        bottomNavigationView.getMenu().getItem(index).setChecked(true);
+    }
+
+    private void removeColor(BottomNavigationView view) {
+        for (int i = 0; i < view.getMenu().size(); i++) {
+            MenuItem item = view.getMenu().getItem(i);
+            item.setChecked(false);
+        }
     }
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -98,6 +125,7 @@ public class FavouriteFragment extends Fragment {
         private TextView mTextView;
         private TextView mIdView;
         private PendingProblem mProblem;
+        private ImageView mDeleteButton;
 
         public ProblemHolder(View itemView){
             super(itemView);
@@ -130,6 +158,18 @@ public class FavouriteFragment extends Fragment {
                     startActivity(webIntent);
                 }
             });
+
+            mDeleteButton = (ImageView) itemView.findViewById(R.id.delete_problem);
+            mDeleteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    FragmentManager manager = getFragmentManager();
+                    DeleteConfirmationDialog dialog = DeleteConfirmationDialog.newInstance(mProblem.getUid().toString());
+                    dialog.setTargetFragment(FavouriteFragment.this,CONFIRMDELETE);
+                    dialog.show(manager,CONFIRMDELETESTRING);
+                    //DeleteProblemAndUpdateUI(mProblem);
+                }
+            });
         }
         public void BindProblem(PendingProblem problem){
             mProblem=problem;
@@ -150,7 +190,7 @@ public class FavouriteFragment extends Fragment {
         public ProblemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
             View view = layoutInflater
-                    .inflate(R.layout.pending_list_item, parent, false);
+                    .inflate(R.layout.favourite_list_item, parent, false);
             return new ProblemHolder(view);
         }
 
@@ -167,7 +207,22 @@ public class FavouriteFragment extends Fragment {
             mProblems = problems;
         }
     }
-    private void UpdateUI(boolean flag) throws JSONException {
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK) {
+            return;
+        }
+        if (requestCode == CONFIRMDELETE){
+            String res = data.getStringExtra(DeleteConfirmationDialog.EXTRA_RESULT);
+            String problemId = data.getStringExtra(DeleteConfirmationDialog.PROBLEM);
+            if(res.equals("true")){
+                ProblemDatabase2 problemDb = ProblemDatabase2.get(getActivity());
+                Log.i(TAG,"problemId: "+problemId);
+                PendingProblem deleteProblem = problemDb.getProblem(problemId);
+                DeleteProblemAndUpdateUI(deleteProblem);
+            }
+        }
+    }
+    private void UpdateUI(){
         ProblemDatabase2 problemDb = ProblemDatabase2.get(getActivity());
         List<PendingProblem> problems = problemDb.getProblems("favourite");
         Log.i(TAG,"problems"+ problems.size());
@@ -179,5 +234,10 @@ public class FavouriteFragment extends Fragment {
             mAdapter.setProblems(problems);
             mAdapter.notifyDataSetChanged();
         }
+    }
+    private void DeleteProblemAndUpdateUI(PendingProblem deleteProblem){
+        ProblemDatabase2 problemDb = ProblemDatabase2.get(getActivity());
+        problemDb.deleteProblem(deleteProblem);
+        UpdateUI();
     }
 }

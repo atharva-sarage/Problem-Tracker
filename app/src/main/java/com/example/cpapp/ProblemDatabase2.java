@@ -6,9 +6,12 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.media.ExifInterface;
+import android.net.Uri;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.FileProvider;
 import android.util.Log;
 
 import com.example.cpapp.ProblemDbSchema.ProblemTable;
@@ -17,6 +20,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -29,6 +33,7 @@ import java.util.UUID;
 public class ProblemDatabase2 {
 
     public static final String TAG = "pdatabase2";
+    private static final String SOLVED ="solved";
     public static ProblemDatabase2 mproblemDatabase;
     private Context mContext;
     private SQLiteDatabase mDatabase;
@@ -141,10 +146,17 @@ public class ProblemDatabase2 {
             }
             boolean isSolved = getProblemStatus(submissions, problem.getId());
         }
-        for (PendingProblem removeProblem : RemoveList)
-            deleteProblem(removeProblem);
+        for (PendingProblem removeProblem : RemoveList){
+            setStatusSolved(removeProblem);
+        }
     }
 
+    private void setStatusSolved(PendingProblem problem){
+        problem.setType(SOLVED);
+        ContentValues values = getContentValues(problem);
+        mDatabase.update(ProblemTable.NAME, values,ProblemTable.Cols.UID + " = ?",
+                new String[]{problem.getUid().toString()});
+    }
     public boolean getProblemStatus(JSONArray userSubmissions, String id) throws JSONException {
         return false;
     }
@@ -156,16 +168,22 @@ public class ProblemDatabase2 {
         problem.increasePhotoCount();
         return new File(externalFilesDir,problem.getFileName());
     }
-    public List<Bitmap> getPhotoFiles(PendingProblem problem, Activity activity){
+    public List<Bitmap> getPhotoFiles(PendingProblem problem, Activity activity) throws IOException {
         List<Bitmap>photoBitmapList = new ArrayList<Bitmap>();
-        Log.i(TAG,problem.getPhotoCount()+"&&&&&&&&&&&&&&");
+        File externalFilesDir = mContext.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        Log.i(TAG,problem.getPhotoCount()+"");
         for(int i=1;i<=problem.getPhotoCount();i++){
             String path = problem.getBaseImgPath()+i+".jpg";
             Bitmap img= PictureUtils.getScaledBitmap(getImageGalleryBasePath()+path,activity);
+            File mImg = new File(externalFilesDir, path);
+            Uri mImgURI = FileProvider.getUriForFile(mContext, mContext.getPackageName() + ".provider", mImg);
+            Log.i(TAG,mImgURI.toString());
+            img = PictureUtils.rotateImageIfRequired(mContext,img, mImgURI);
+            Log.i(TAG, String.valueOf(img)+"img rotated");
             if(img!=null)
                 photoBitmapList.add(img);
         }
-        Log.i(TAG,photoBitmapList.size()+"%%%%%%%%%%%%%%%%%%%%%%%%%%%");
+        Log.i(TAG,photoBitmapList.size()+"");
         return photoBitmapList;
     }
     public String getImageGalleryBasePath(){

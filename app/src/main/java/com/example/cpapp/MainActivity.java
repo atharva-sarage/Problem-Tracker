@@ -36,6 +36,8 @@ public class MainActivity extends AppCompatActivity {
     {
         if(type.equals("favourite"))
             return FavouriteFragment.newInstance();
+        else if(type.equals("solved"))
+            return SolvedFragment.newInstance();
         else
             return PendingListFragment.newInstance();
 

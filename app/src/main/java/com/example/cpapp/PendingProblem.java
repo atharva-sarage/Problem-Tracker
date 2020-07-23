@@ -88,4 +88,5 @@ public class PendingProblem {
     public void setPhotoCount(int photoCount){
         mPhotoCount = photoCount;
     }
+
 }

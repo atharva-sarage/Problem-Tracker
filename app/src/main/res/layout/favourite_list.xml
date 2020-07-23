@@ -5,31 +5,26 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     >
-    <android.support.v4.widget.SwipeRefreshLayout
-        android:id="@+id/pullToRefresh"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
 
-        <LinearLayout
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="10dp"
-                android:layout_marginLeft="100dp"
-                android:layout_marginRight="50dp"
-                android:layout_gravity="center|top"
-                android:text="Favourite Problems"/>
+            android:padding="10dp"
+            android:layout_marginLeft="100dp"
+            android:layout_marginRight="50dp"
+            android:layout_gravity="center|top"
+            android:text="Favourite Problems"/>
 
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/favourite_list_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="695dp"
-                android:layout_weight="1"></android.support.v7.widget.RecyclerView>
-        </LinearLayout>
-    </android.support.v4.widget.SwipeRefreshLayout>
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/favourite_list_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="695dp"
+            android:layout_weight="1"></android.support.v7.widget.RecyclerView>
+    </LinearLayout>
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/bottom_navigation"
@@ -38,7 +33,7 @@
         android:layout_alignParentBottom="true"
         app:menu="@menu/bottom_nav_menu"
         app:itemBackground="@color/colorPrimary"
-        app:itemIconTint="@android:color/white"
-        app:itemTextColor="@android:color/white" />
+        app:itemIconTint="@drawable/bottom_navigation_selector"
+        app:itemTextColor="@drawable/bottom_navigation_selector" />
 
 </RelativeLayout>

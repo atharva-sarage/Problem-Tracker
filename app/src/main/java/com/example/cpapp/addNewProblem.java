@@ -28,6 +28,7 @@ import android.widget.TextView;
 import org.w3c.dom.Text;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -90,11 +91,14 @@ public class addNewProblem extends Fragment {
                 }else if(mProblem.getType().equals("favourite")){
                     Intent intent = MainActivity.newIntent(getContext(),"favourite");
                     startActivity(intent);
+                }else if(mProblem.getType().equals("solved")){
+                    Intent intent = MainActivity.newIntent(getContext(),"solved");
+                    startActivity(intent);
                 }
             }
         });
         mImageGridView = (RecyclerView) view.findViewById(R.id.image_grid_recycler_view);
-        mImageGridView.setLayoutManager(new GridLayoutManager(getActivity(),3));
+        mImageGridView.setLayoutManager(new GridLayoutManager(getActivity(),4));
 
         mAddImageButton = (Button) view.findViewById(R.id.add_image_button);
         mAddImageButton.setOnClickListener(new View.OnClickListener() {
@@ -104,7 +108,11 @@ public class addNewProblem extends Fragment {
                 startActivityForResult(mCaptureImage,REQUEST_PHOTO);
             }
         });
-        mImageAdaptor = new ImageAdaptor(ProblemDatabase2.get(getActivity()).getPhotoFiles(mProblem, getActivity()));
+        try {
+            mImageAdaptor = new ImageAdaptor(ProblemDatabase2.get(getActivity()).getPhotoFiles(mProblem, getActivity()));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         mImageGridView.setAdapter(mImageAdaptor);
         return view;
     }
@@ -141,7 +149,7 @@ public class addNewProblem extends Fragment {
         private Bitmap mImageBitmap;
         public ImageHolder(View itemView) {
             super(itemView);
-            mImage = itemView.findViewById(R.id.problem_photo);
+            mImage = itemView.findViewById(R.id.problem_photo_grid_view);
         }
         public void bind(Bitmap imageBitmap, final int imageIndex){
             mImageBitmap = imageBitmap;
@@ -150,15 +158,7 @@ public class addNewProblem extends Fragment {
             mImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent();
-                    intent.setAction(Intent.ACTION_VIEW);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                    File photoFile = new File(basePath+mProblem.getImagePath(imageIndex).toString());
-                    Uri uri = FileProvider.getUriForFile(getContext(),
-                            BuildConfig.APPLICATION_ID + ".provider",
-                            photoFile);
-                    Log.i(TAG,photoFile.toString());
-                    intent.setDataAndType(uri, "image/*");
+                    Intent intent = ImagePagerActivity.newInstance(getContext(),imageIndex,mProblem.getUid(),mProblem.getPhotoCount());
                     startActivity(intent);
                 }
             });
@@ -176,7 +176,7 @@ public class addNewProblem extends Fragment {
         public ImageHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
             View view = layoutInflater
-                    .inflate(R.layout.image_fragment, parent, false);
+                    .inflate(R.layout.image_item_gird_view, parent, false);
             return new ImageHolder(view);
         }
 
@@ -216,8 +216,13 @@ public class addNewProblem extends Fragment {
             return;
         }
         if (requestCode == REQUEST_PHOTO) {
-            mImageAdaptor.setImageBitmaps(ProblemDatabase2.get(getActivity()).getPhotoFiles(mProblem, getActivity()));
+            try {
+                mImageAdaptor.setImageBitmaps(ProblemDatabase2.get(getActivity()).getPhotoFiles(mProblem, getActivity()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             mImageAdaptor.notifyDataSetChanged();
         }
     }
 }
+

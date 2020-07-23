@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+/**
+ * Fetcher is for codeforces but currently not onboarded due to some issues. *
+ */
 public class Fetcher {
     public static final String TAG="fetcher";
     public static final String userId="atharva_sarage";
@@ -54,7 +57,6 @@ public class Fetcher {
             String jsonString = getUrlString(url);
             JSONObject jsonBody = new JSONObject(jsonString);
             userJsonArray = jsonBody.getJSONArray("result");
-            System.out.println("????");
             Log.i(TAG,"Recieved Json: "+jsonString+"\n");
         } catch (IOException | JSONException ioe){
             Log.e(TAG,"failed to fetch",ioe);

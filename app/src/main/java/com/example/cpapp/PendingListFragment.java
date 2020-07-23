@@ -48,6 +48,7 @@ public class PendingListFragment extends Fragment {
     private static final int SETNOTES=1;
     private static final int REQUEST_USERNAME = 2;
     private static final String SETUSERNAME="username";
+    private static final int PENDING_MENU_ID = 0;
     private static String mUserName=null;
     private RecyclerView mRecyclerView;
     private ProblemAdapter mAdapter;
@@ -68,10 +69,16 @@ public class PendingListFragment extends Fragment {
         if(savedInstanceState!=null){
             Log.i(TAG,"codechef problems set now");
             mCodechefPoblems=(Set)savedInstanceState.getSerializable(SOLVED_ARRAY);
+            mUserName=prefs.getString("userName","");
+            String url="https://www.codechef.com/users/"+mUserName;
+            new ScrapeItemsTask().execute(url);
         }
         else if(prefs.getStringSet("PROBLEMS",null)!=null){
             Log.i(TAG,"problems loaded");
             mCodechefPoblems = prefs.getStringSet("PROBLEMS",null);
+            mUserName=prefs.getString("userName","");
+            String url="https://www.codechef.com/users/"+mUserName;
+            new ScrapeItemsTask().execute(url);
         }
         else {
             if (!prefs.getBoolean("firstTime", false)) {
@@ -82,11 +89,16 @@ public class PendingListFragment extends Fragment {
                 mUserNameDialog.show(manager, SETUSERNAME);
                 SharedPreferences.Editor editor = prefs.edit();
                 editor.commit();
-            }else{
-                new ScrapeItemsTask().execute();
+            }
+            else{
+                try {
+                    throw new Exception();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
-
+        Log.i(TAG,"scrape items updation task");
         setHasOptionsMenu(true);
     }
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -135,7 +147,14 @@ public class PendingListFragment extends Fragment {
                         .newIntent(getActivity(), problem.getUid().toString(),"pending");
                 startActivity(intent);
                 return true;
-
+            case R.id.menu_item_change_username:
+                SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+                FragmentManager manager = getFragmentManager();
+                UserNameDialog mUserNameDialog = UserNameDialog.newInstance();
+                mUserNameDialog.setTargetFragment(PendingListFragment.this, REQUEST_USERNAME);
+                mUserNameDialog.show(manager, SETUSERNAME);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.commit();
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -145,18 +164,30 @@ public class PendingListFragment extends Fragment {
         View view = inflater.inflate(R.layout.pending_fragment,container,false);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.pending_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
-        BottomNavigationView bottomNavigationView = (BottomNavigationView) view.findViewById(R.id.bottom_navigation);
+        final BottomNavigationView bottomNavigationView = (BottomNavigationView) view.findViewById(R.id.bottom_navigation);
+        initBottomNavigationMenuBar(PENDING_MENU_ID,bottomNavigationView);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+                removeColor(bottomNavigationView);
+                item.setChecked(true);
+                Log.i(TAG,"current item :"+item);
                 switch (item.getItemId()) {
                     case R.id.action_pending:
                         break;
                     case R.id.action_favorites:
                         FragmentManager manager = getFragmentManager();
-                        Fragment  fragment = new FavouriteFragment();
+                        Fragment fragment = new FavouriteFragment();
                         manager.beginTransaction()
                                 .replace(R.id.fragment_container,fragment)
+                                .commit();
+
+                        break;
+                    case R.id.action_solved:
+                        FragmentManager manager1 = getFragmentManager();
+                        Fragment fragment1 = new SolvedFragment();
+                        manager1.beginTransaction()
+                                .replace(R.id.fragment_container,fragment1)
                                 .commit();
                         break;
                      }
@@ -195,11 +226,19 @@ public class PendingListFragment extends Fragment {
         }
         return view;
     }
+    private void removeColor(BottomNavigationView view) {
+        Log.i(TAG, String.valueOf(view.getMenu().size()));
+        for (int i = 0; i < view.getMenu().size(); i++) {
+            MenuItem item = view.getMenu().getItem(i);
+            Log.i(TAG, String.valueOf(item));
+            item.setChecked(false);
+        }
+    }
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
         Log.i(TAG,"????");
-        inflater.inflate(R.menu.fragment_list_menu, menu);
+        inflater.inflate(R.menu.pending_list_menu, menu);
 
     }
 
@@ -283,7 +322,7 @@ public class PendingListFragment extends Fragment {
         ProblemDatabase2 problemDb = ProblemDatabase2.get(getActivity());
         List<PendingProblem> problems = problemDb.getProblems("pending");
         if(flag) {
-            Log.i(TAG,"update ui");
+            Log.i(TAG,"update ui "+mCodechefPoblems.size()+"??????????????????");
             problemDb.isSolved(problems, mSubmissions,mCodechefPoblems);
         }
         problems = problemDb.getProblems("pending");
@@ -325,5 +364,10 @@ public class PendingListFragment extends Fragment {
             mCodechefPoblems = strings;
             Log.i(TAG,"on post execute");
         }
+    }
+
+    private void initBottomNavigationMenuBar(int index, BottomNavigationView bottomNavigationView) {
+        removeColor(bottomNavigationView);
+        bottomNavigationView.getMenu().getItem(index).setChecked(true);
     }
 }

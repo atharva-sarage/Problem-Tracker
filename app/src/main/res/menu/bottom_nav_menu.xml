@@ -1,12 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">    <item
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
     android:id="@+id/action_pending"
     android:enabled="true"
     android:title="Pending"
-    app:showAsAction="ifRoom" />    <item
+    android:icon="@drawable/ic_pending"
+    app:showAsAction="withText" />
+    <item
     android:id="@+id/action_favorites"
     android:enabled="true"
     android:title="Favorites"
-    app:showAsAction="ifRoom" />
+    android:icon="@drawable/ic_favourite"
+    app:showAsAction="withText" />
+    <item
+    android:id="@+id/action_solved"
+    android:enabled="true"
+    android:title="Solved"
+    android:icon="@drawable/ic_solved"
+    app:showAsAction="withText" />
 </menu>
