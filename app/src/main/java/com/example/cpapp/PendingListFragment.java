@@ -91,11 +91,6 @@ public class PendingListFragment extends Fragment {
                 editor.commit();
             }
             else{
-                try {
-                    throw new Exception();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
         }
         Log.i(TAG,"scrape items updation task");

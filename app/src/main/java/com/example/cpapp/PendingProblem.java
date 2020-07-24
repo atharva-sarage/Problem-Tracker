@@ -1,5 +1,7 @@
 package com.example.cpapp;
 
+import android.app.Activity;
+import android.content.Context;
 import android.util.Log;
 
 import java.util.Date;
@@ -82,8 +84,8 @@ public class PendingProblem {
         String path= "IMG_"+ getUid().toString()+ idx +".jpg";
         return path;
     }
-    public int getPhotoCount(){
-        return mPhotoCount;
+    public int getPhotoCount(Context context){
+        return ProblemDatabase2.get(context).getProblemImageCount(this);
     }
     public void setPhotoCount(int photoCount){
         mPhotoCount = photoCount;

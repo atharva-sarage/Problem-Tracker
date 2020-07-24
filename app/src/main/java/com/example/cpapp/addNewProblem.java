@@ -38,6 +38,7 @@ public class addNewProblem extends Fragment {
     private static final String EXTRA_ID = "extra_id";
     private static final String EXTRA_TYPE="extra_type";
     private static final int REQUEST_PHOTO = 0;
+    public static final String ADD_NEW_PROBLEM_FLAG = "0";
     private PendingProblem mProblem;
     private EditText mNameText;
     private EditText mIdText;
@@ -120,8 +121,6 @@ public class addNewProblem extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        PendingProblem problemDelete=new PendingProblem();
-        problemDelete=mProblem;
         Log.i(TAG,"on pause updated");
         mProblem.setName(""+mNameText.getText());
         mProblem.setPlatform(""+mSpinner.getSelectedItem());
@@ -158,7 +157,7 @@ public class addNewProblem extends Fragment {
             mImage.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = ImagePagerActivity.newInstance(getContext(),imageIndex,mProblem.getUid(),mProblem.getPhotoCount());
+                    Intent intent = ImagePagerActivity.newInstance(getContext(),ADD_NEW_PROBLEM_FLAG, String.valueOf(imageIndex), String.valueOf(mProblem.getUid()),mProblem.getPhotoCount(getActivity()),mProblem.getType());
                     startActivity(intent);
                 }
             });
@@ -203,6 +202,9 @@ public class addNewProblem extends Fragment {
         boolean canTakePhoto = mPhotoFile != null;
         mAddImageButton.setEnabled(canTakePhoto);
         if(canTakePhoto){
+            // add to database
+            ProblemImage imageToBeAdded = new ProblemImage(mProblem.getUid(),mProblem.getFileName());
+            ProblemDatabase2.get(getActivity()).addProblemImage(imageToBeAdded);
             Uri uri = FileProvider.getUriForFile(getContext(),
                     BuildConfig.APPLICATION_ID + ".provider",
                     mPhotoFile);

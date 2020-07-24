@@ -18,5 +18,12 @@ public class ProblemDbSchema  {
             public static final String PHOTOCOUNT ="photocount";
         }
     }
+    public static class ProblemImages {
+        public static final String NAME="problemImages";
+        public static final class Cols {
+            public static final String UID="uid";
+            public static final String FILENAME="fileName";
+        }
+    }
 }
 
