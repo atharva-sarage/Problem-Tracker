@@ -9,7 +9,7 @@ import com.example.cpapp.ProblemDbSchema.ProblemImages;
 
 public class ProblemBaseHelper extends SQLiteOpenHelper {
     private static final int VERSION = 1;
-    private static final String DATABASE_NAME = "problem4.db";
+    private static final String DATABASE_NAME = "problem5.db";
     public ProblemBaseHelper(Context context) {
         super(context, DATABASE_NAME, null, VERSION);
     }
@@ -32,8 +32,8 @@ public class ProblemBaseHelper extends SQLiteOpenHelper {
                 "_id integer primary key autoincrement," +
                 ProblemImages.Cols.UID +", "+
                 ProblemImages.Cols.FILENAME+", " +
-                "FOREIGN KEY (" + ProblemImages.Cols.UID + ") REFERENCES "+
-                ProblemTable.NAME +"("+ ProblemTable.Cols.UID + ")"+
+                "FOREIGN KEY (" + ProblemDbSchema.ProblemImages.Cols.UID + ") REFERENCES "+
+                ProblemTable.NAME +"("+ ProblemTable.Cols.UID + ") ON DELETE CASCADE "+
                 ")"
         );
     }
