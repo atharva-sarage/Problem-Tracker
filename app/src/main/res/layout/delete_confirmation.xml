@@ -5,7 +5,7 @@
     android:layout_height="match_parent">
     <TextView
         android:id="@+id/notes_text_view"
-        android:padding="10dp"
+        android:padding="20dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Are you sure you want to delete this. All the photos will also be deleted."/>
